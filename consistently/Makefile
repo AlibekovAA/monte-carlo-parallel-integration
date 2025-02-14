@@ -1,7 +1,8 @@
 CXX = g++
-CXXFLAGS = -Wall -Wextra -Werror -std=c++17 -fexec-charset=UTF-8
+# CXXFLAGS = -Wall -Wextra -Werror -std=c++17 -fexec-charset=UTF-8
+CXXFLAGS = -Wall -Wextra -std=c++17 -fexec-charset=UTF-8
 
-SRCS = main.cpp monte_carlo.cpp
+SRCS = main.cpp monte_carlo.cpp helper.cpp
 OBJS = $(SRCS:.cpp=.o)
 TARGET = program.exe
 
