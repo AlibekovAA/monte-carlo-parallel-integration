@@ -1,4 +1,4 @@
-function: x^2 + 2*y + 1
-variables: 2
+function: sin(x1)
+variables: 1
 bounds: 0 5
-points: 1000000
+points: 10000000
