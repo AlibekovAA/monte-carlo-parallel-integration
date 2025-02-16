@@ -14,11 +14,14 @@ InputData parseInputFile(const std::string& filename) {
         std::getline(iss, key, ':');
         std::getline(iss, value);
 
+        value = value.substr(value.find_first_not_of(" \t"));
+        value = value.substr(0, value.find_last_not_of(" \t") + 1);
+
         iss.clear();
         iss.str(value);
 
         if (key == "function") {
-            data.function = CompiledFunction(value.substr(1), data.variables);
+            data.function = CompiledFunction(value, data.variables);
         }
         else if (key == "variables") {
             iss >> data.variables;
@@ -32,10 +35,12 @@ InputData parseInputFile(const std::string& filename) {
         else if (key == "points") {
             iss >> data.points;
         }
+        else if (key == "count_threads") {
+            data.count_threads = value;
+        }
     }
 
     data.function = CompiledFunction(data.function.getExpression(), data.variables);
-
     return data;
 }
 

@@ -8,26 +8,29 @@
 double calculateIntegral(const InputData& data) {
     double sum = 0.0;
     double range = data.upper_bound - data.lower_bound;
+    int num_threads = omp_get_max_threads();
+    std::vector<double> partial_sums(num_threads, 0.0);
 
     #pragma omp parallel
     {
+        int thread_id = omp_get_thread_num();
         std::random_device rd;
-        std::mt19937 gen(rd() + omp_get_thread_num());
+        std::mt19937 gen(rd() + thread_id);
         std::uniform_real_distribution<double> dis(data.lower_bound, data.upper_bound);
 
         std::vector<double> local_point(data.variables);
-        double local_sum = 0.0;
 
         #pragma omp for
         for (int i = 0; i < data.points; ++i) {
             for (int j = 0; j < data.variables; ++j) {
                 local_point[j] = dis(gen);
             }
-            local_sum += data.function.evaluate(local_point);
+            partial_sums[thread_id] += data.function.evaluate(local_point);
         }
+    }
 
-        #pragma omp atomic
-        sum += local_sum;
+    for (double partial_sum : partial_sums) {
+        sum += partial_sum;
     }
 
     double volume = data.variables == 1 ? range : range * range;

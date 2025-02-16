@@ -50,8 +50,9 @@ struct InputData {
     double lower_bound;
     double upper_bound;
     int points;
+    std::string count_threads;
 
-    InputData() : function("0", 1), variables(1), lower_bound(0), upper_bound(0), points(0) {}
+    InputData() : function("0", 1), variables(1), lower_bound(0), upper_bound(0), points(0), count_threads("max") {}
 };
 
 InputData parseInputFile(const std::string& filename);
