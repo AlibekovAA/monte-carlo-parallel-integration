@@ -1,4 +1,4 @@
-function: sin(x1)
-variables: 1
+function: sin(x1) + 2cos(x2)
+variables: 2
 bounds: 0 5
 points: 10000000

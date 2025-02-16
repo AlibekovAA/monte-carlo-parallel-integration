@@ -7,16 +7,18 @@
 InputData parseInputFile(const std::string& filename) {
     InputData data;
     std::ifstream file(filename);
-    std::string line;
+    std::string line, key, value;
 
     while (std::getline(file, line)) {
         std::istringstream iss(line);
-        std::string key;
-
         std::getline(iss, key, ':');
+        std::getline(iss, value);
+
+        iss.clear();
+        iss.str(value);
+
         if (key == "function") {
-            std::getline(iss, data.function);
-            data.function = data.function.substr(1);
+            data.function = CompiledFunction(value.substr(1), data.variables);
         }
         else if (key == "variables") {
             iss >> data.variables;
@@ -31,6 +33,8 @@ InputData parseInputFile(const std::string& filename) {
             iss >> data.points;
         }
     }
+
+    data.function = CompiledFunction(data.function.getExpression(), data.variables);
 
     return data;
 }
@@ -62,6 +66,10 @@ double evaluateTerm(const std::string& expr, const std::vector<double>& values, 
                     result = result * 10 + (expr[pos] - '0');
                 }
                 pos++;
+            }
+
+            if (pos < expr.length() && std::isalpha(expr[pos])) {
+                return result * evaluateTerm(expr, values, varNames, pos);
             }
             return result;
         }
@@ -164,18 +172,7 @@ double evaluateExpression(const std::string& expr, const std::vector<double>& va
     return result;
 }
 
-double evaluateFunction(const std::string& function, const std::vector<double>& point) {
-    try {
-        std::vector<std::string> varNames;
-        for (size_t i = 0; i < point.size(); i++) {
-            varNames.push_back("x" + std::to_string(i + 1));
-        }
-
-        size_t pos = 0;
-        return evaluateExpression(function, point, varNames, pos);
-    }
-    catch (const std::exception& e) {
-        std::cerr << "Ошибка при вычислении функции: " << e.what() << std::endl;
-        return 0.0;
-    }
+double CompiledFunction::evaluate(const std::vector<double>& values) const {
+    size_t pos = 0;
+    return evaluateExpression(expr, values, varNames, pos);
 }

@@ -24,17 +24,35 @@ namespace math {
     };
 }
 
+class CompiledFunction {
+private:
+    std::string expr;
+    std::vector<std::string> varNames;
+
+public:
+    CompiledFunction(const std::string& expression = "0", int numVariables = 1)
+        : expr(expression) {
+        for (int i = 1; i <= numVariables; i++) {
+            varNames.push_back("x" + std::to_string(i));
+        }
+    }
+
+    double evaluate(const std::vector<double>& values) const;
+    const std::string& getExpression() const { return expr; }
+};
+
 struct InputData {
-    std::string function;
+    CompiledFunction function;
     int variables;
     double lower_bound;
     double upper_bound;
     int points;
+
+    InputData() : function("0", 1), variables(1), lower_bound(0), upper_bound(0), points(0) {}
 };
 
 InputData parseInputFile(const std::string& filename);
 double evaluateTerm(const std::string& expr, const std::vector<double>& values, const std::vector<std::string>& varNames, size_t& pos);
 double evaluateExpression(const std::string& expr, const std::vector<double>& values, const std::vector<std::string>& varNames, size_t& pos);
-double evaluateFunction(const std::string& function, const std::vector<double>& point);
 
 #endif

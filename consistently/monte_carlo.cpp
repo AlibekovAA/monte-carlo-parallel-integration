@@ -6,23 +6,22 @@
 #include <random>
 
 double calculateIntegral(const InputData& data) {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> dis(data.lower_bound, data.upper_bound);
+    srand(time(0));
 
     double sum = 0.0;
     std::vector<double> point(data.variables);
+    double range = data.upper_bound - data.lower_bound;
 
     for (int i = 0; i < data.points; ++i) {
         for (int j = 0; j < data.variables; ++j) {
-            point[j] = dis(gen);
+            point[j] = data.lower_bound + (rand() / (double)RAND_MAX) * range;
         }
-        sum += evaluateFunction(data.function, point);
+        sum += data.function.evaluate(point);
     }
 
     double volume = data.variables == 1 ?
-        (data.upper_bound - data.lower_bound) :
-        pow(data.upper_bound - data.lower_bound, 2);
+        range :
+        range * range;
 
     return (sum / data.points) * volume;
 }
