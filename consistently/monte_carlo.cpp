@@ -3,7 +3,6 @@
 #include <ctime>
 #include <cmath>
 #include <stdexcept>
-#include <random>
 
 double calculateIntegral(const InputData& data) {
     srand(time(0));
