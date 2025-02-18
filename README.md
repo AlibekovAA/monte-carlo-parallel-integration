@@ -46,3 +46,7 @@
 - `make run` - запуск программы
 - `make clean` - очистка файлов сборки
 - `make rebuild` - пересборка и запуск программы
+
+## Пример работы OpenMP
+![Пример работы OpenMP](.\OpenMP\plots\speedup_by_points_20250218_231306.png)
+![Пример работы OpenMP](.\OpenMP\plots\speedup_by_threads_20250218_231306.png)
