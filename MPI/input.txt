@@ -1,5 +1,5 @@
 function: sin(x1) + 2cos(x2)
 variables: 2
 bounds: 0 5
-points: 100000000
-count_threads: 20
+points: 10000000
+count_processes: 20
