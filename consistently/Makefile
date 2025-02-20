@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -Wextra -Werror -std=c++17 -fexec-charset=UTF-8
+CXXFLAGS = -O3 -Wall -Wextra -Werror -std=c++17 -fexec-charset=UTF-8
 
 SRCS = main.cpp monte_carlo.cpp helper.cpp
 OBJS = $(SRCS:.cpp=.o)

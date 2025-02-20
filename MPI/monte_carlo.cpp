@@ -11,7 +11,6 @@ double calculateIntegral(const InputData& data) {
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
     double local_sum = 0.0;
-    double global_sum = 0.0;
     double range = data.upper_bound - data.lower_bound;
 
     int points_per_process = data.points / size;
@@ -32,8 +31,9 @@ double calculateIntegral(const InputData& data) {
         local_sum += data.function.evaluate(point);
     }
 
-    MPI_Reduce(&local_sum, &global_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    if (rank == 0) MPI_Reduce(MPI_IN_PLACE, &local_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    else MPI_Reduce(&local_sum, &local_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
     double volume = data.variables == 1 ? range : range * range;
-    return (global_sum / data.points) * volume;
+    return (local_sum / data.points) * volume;
 }

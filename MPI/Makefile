@@ -1,7 +1,7 @@
 CXX = g++
 MPIPATH = "C:/Program Files (x86)/Microsoft SDKs/MPI"
 MPIEXEC = "C:/Program Files/Microsoft MPI/Bin/mpiexec.exe"
-CXXFLAGS = -fexec-charset=UTF-8 -finput-charset=UTF-8 -DUNICODE -D_UNICODE
+CXXFLAGS = -O3 -fexec-charset=UTF-8 -finput-charset=UTF-8 -DUNICODE -D_UNICODE
 LDFLAGS = -L$(MPIPATH)/Lib/x64 -lmsmpi
 
 SRCS = main.cpp monte_carlo.cpp helper.cpp

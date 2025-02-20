@@ -1,5 +1,5 @@
 CXX = C:/msys64/mingw64/bin/g++.exe
-CXXFLAGS = -fopenmp -fexec-charset=UTF-8
+CXXFLAGS = -O3 -fopenmp -fexec-charset=UTF-8
 LDFLAGS = -fopenmp
 
 SRCS = main.cpp monte_carlo.cpp helper.cpp
