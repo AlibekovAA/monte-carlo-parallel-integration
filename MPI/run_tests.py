@@ -111,9 +111,27 @@ def format_table_row(data):
     return " | ".join(f"{x:^15}" for x in data)
 
 
+def run_test_multiple_times(processes, points, num_runs=5):
+    total_integral = 0.0
+    total_time = 0.0
+    successful_runs = 0
+
+    for _ in range(num_runs):
+        integral_result, execution_time = run_test(processes, points)
+        if integral_result is not None and execution_time is not None:
+            total_integral += integral_result
+            total_time += execution_time
+            successful_runs += 1
+
+    if successful_runs > 0:
+        return (total_integral / successful_runs,
+                total_time / successful_runs)
+    return None, None
+
+
 def run_tests_for_points(points, process_counts, max_processes, output_file):
     results = []
-    integral_result, base_time = run_test(1, points)
+    integral_result, base_time = run_test_multiple_times(1, points)
 
     if base_time is not None and base_time > 0:
         speedup = 1.0
@@ -123,14 +141,14 @@ def run_tests_for_points(points, process_counts, max_processes, output_file):
             if processes > max_processes:
                 continue
 
-            integral_result, execution_time = run_test(processes, points)
+            integral_result, execution_time = run_test_multiple_times(processes, points)
             if execution_time is not None and execution_time > 0:
                 speedup = base_time / execution_time
                 results.append((processes, execution_time, speedup, integral_result))
 
     if results:
         best_result = find_best_result(results)
-        output_file.write(f"\nResults for {points:,} points:\n".replace(',', ' '))
+        output_file.write(f"\nResults for {points:,} points (averaged over 5 runs):\n".replace(',', ' '))
         output_file.write("-" * 80 + "\n")
         headers = ["Processes"] + [str(r[0]) for r in results]
         output_file.write(" | ".join(f"{x:^15}" for x in headers) + "\n")
@@ -158,13 +176,13 @@ def main():
 
     max_processes = 20
     process_counts = [1, 3, 6, 12, 18, 20]
-    point_counts = [10000, 100000, 1000000, 10000000]
+    point_counts = [10000, 100000, 1000000, 10000000, 100000000]
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f'test_results_{timestamp}.txt'
+    filename = f'test_results_{timestamp}_avg5.txt'
     all_results = {}
 
     with open(filename, 'w', encoding='utf-8') as f:
-        f.write("Monte Carlo MPI Testing Results\n")
+        f.write("Monte Carlo MPI Testing Results (Averaged over 5 runs)\n")
         f.write(f"Date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Maximum available processes: {max_processes}\n")
         f.write("=" * 80 + "\n")
@@ -173,12 +191,9 @@ def main():
             results = run_tests_for_points(points, process_counts, max_processes, f)
             if results:
                 all_results[points] = results
-    logging.info(f"\nTesting completed. Results saved to: {filename}")
 
     if all_results:
         plot_results(all_results, process_counts, point_counts, timestamp)
-    logging.info(f"Plots saved as speedup_by_threads_{timestamp}.png and speedup_by_points_{timestamp}.png")
-
     clean_result = subprocess.run(['make', 'clean'],
                                 capture_output=True,
                                 text=True,
