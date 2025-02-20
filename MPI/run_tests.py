@@ -173,9 +173,11 @@ def main():
             results = run_tests_for_points(points, process_counts, max_processes, f)
             if results:
                 all_results[points] = results
+    logging.info(f"\nTesting completed. Results saved to: {filename}")
 
     if all_results:
         plot_results(all_results, process_counts, point_counts, timestamp)
+    logging.info(f"Plots saved as speedup_by_threads_{timestamp}.png and speedup_by_points_{timestamp}.png")
 
     clean_result = subprocess.run(['make', 'clean'],
                                 capture_output=True,

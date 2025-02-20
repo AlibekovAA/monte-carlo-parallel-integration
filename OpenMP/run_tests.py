@@ -3,6 +3,13 @@ import re
 from datetime import datetime
 import matplotlib.pyplot as plt
 import os
+import logging
+
+logging.basicConfig(
+    level=logging.ERROR,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 
 def update_input_file(threads, points):
@@ -27,7 +34,6 @@ def run_test(threads, points):
     update_input_file(threads, points)
 
     try:
-        print(f"Running make run...")
         result = subprocess.run(['make', 'run'],
                                 capture_output=True,
                                 text=True,
@@ -42,15 +48,15 @@ def run_test(threads, points):
             return integral_result, execution_time
         else:
             if not result_match:
-                print("Could not find integral result in output")
+                logging.error("Could not find integral result in output")
             if not time_match:
-                print("Could not find execution time in output")
+                logging.error("Could not find execution time in output")
             return None, None
     except subprocess.CalledProcessError as e:
-        print(f"Error running test: {e}")
+        logging.error(f"Error running test: {e}")
         return None, None
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        logging.error(f"Unexpected error: {e}")
         return None, None
 
 
@@ -114,16 +120,12 @@ def format_table_row(data):
 
 def run_tests_for_points(points, thread_counts, output_file):
     results = []
-    print(f"\nTesting for {points:,} points".replace(',', ' '))
-
-    print(f"Testing with 1 thread...")
     integral_result, base_time = run_test(1, points)
     if base_time is not None and base_time > 0:
         speedup = 1.0
         results.append((1, base_time, speedup, integral_result))
 
         for threads in thread_counts[1:]:
-            print(f"Testing with {threads} threads...")
             integral_result, execution_time = run_test(threads, points)
 
             if execution_time is not None and execution_time > 0:
@@ -163,9 +165,6 @@ def main():
     filename = f'test_results_{timestamp}.txt'
     all_results = {}
 
-    print("Starting tests...")
-    print(f"Results will be saved to: {filename}")
-
     with open(filename, 'w', encoding='utf-8') as f:
         f.write("Monte Carlo Testing Results\n")
         f.write(f"Date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
@@ -176,10 +175,10 @@ def main():
             if results:
                 all_results[points] = results
 
-    print(f"\nTesting completed. Results saved to: {filename}")
+    logging.info(f"\nTesting completed. Results saved to: {filename}")
 
     plot_results(all_results, thread_counts, point_counts, timestamp)
-    print(f"Plots saved as speedup_by_threads_{timestamp}.png and speedup_by_points_{timestamp}.png")
+    logging.info(f"Plots saved as speedup_by_threads_{timestamp}.png and speedup_by_points_{timestamp}.png")
     subprocess.run(['make', 'clean'],
                    capture_output=True,
                    text=True,
