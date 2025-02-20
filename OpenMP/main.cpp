@@ -17,6 +17,10 @@ int main() {
             num_threads = max_threads;
         } else {
             num_threads = std::stoi(data.count_threads);
+            if (num_threads <= 0) {
+                std::cerr << "Ошибка: количество потоков должно быть положительным числом" << std::endl;
+                return 1;
+            }
             if (num_threads > max_threads) {
                 std::cout << "Предупреждение: Запрошенное количество потоков (" << num_threads
                           << ") превышает максимально доступное (" << max_threads
