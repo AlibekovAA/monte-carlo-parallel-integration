@@ -118,15 +118,34 @@ def format_table_row(data):
     return " | ".join(f"{x:^15}" for x in data)
 
 
+def run_test_multiple_times(threads, points, num_runs=5):
+    total_integral = 0.0
+    total_time = 0.0
+    successful_runs = 0
+
+    for _ in range(num_runs):
+        integral_result, execution_time = run_test(threads, points)
+        if integral_result is not None and execution_time is not None:
+            total_integral += integral_result
+            total_time += execution_time
+            successful_runs += 1
+
+    if successful_runs > 0:
+        return (total_integral / successful_runs,
+                total_time / successful_runs)
+    return None, None
+
+
 def run_tests_for_points(points, thread_counts, output_file):
     results = []
-    integral_result, base_time = run_test(1, points)
+    integral_result, base_time = run_test_multiple_times(1, points)
+
     if base_time is not None and base_time > 0:
         speedup = 1.0
         results.append((1, base_time, speedup, integral_result))
 
         for threads in thread_counts[1:]:
-            integral_result, execution_time = run_test(threads, points)
+            integral_result, execution_time = run_test_multiple_times(threads, points)
 
             if execution_time is not None and execution_time > 0:
                 speedup = base_time / execution_time
@@ -135,20 +154,20 @@ def run_tests_for_points(points, thread_counts, output_file):
     if results:
         best_result = find_best_result(results)
 
-        output_file.write(f"\nResults for {points:,} points:\n".replace(',', ' '))
+        output_file.write(f"\nResults for {points:,} points (averaged over 5 runs):\n".replace(',', ' '))
         output_file.write("-" * 80 + "\n")
 
         headers = ["Threads"] + [str(r[0]) for r in results]
-        output_file.write(" | ".join(f"{x:^15}" for x in headers) + "\n")
+        output_file.write(format_table_row(headers) + "\n")
 
         times = ["Time"] + [f"{r[1]:.4f}" for r in results]
-        output_file.write(" | ".join(f"{x:^15}" for x in times) + "\n")
+        output_file.write(format_table_row(times) + "\n")
 
         speedups = ["Speedup"] + [f"{r[2]:.4f}" for r in results]
-        output_file.write(" | ".join(f"{x:^15}" for x in speedups) + "\n")
+        output_file.write(format_table_row(speedups) + "\n")
 
         integral_results = ["Result"] + [f"{r[3]:.4f}" for r in results]
-        output_file.write(" | ".join(f"{x:^15}" for x in integral_results) + "\n")
+        output_file.write(format_table_row(integral_results) + "\n")
 
         output_file.write("-" * 80 + "\n")
         output_file.write(
@@ -159,14 +178,14 @@ def run_tests_for_points(points, thread_counts, output_file):
 
 def main():
     thread_counts = [1, 3, 6, 12, 18, 20]
-    point_counts = [10000, 100000, 1000000, 10000000]
+    point_counts = [10000, 100000, 1000000, 10000000, 100000000]
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f'test_results_{timestamp}.txt'
+    filename = f'test_results_{timestamp}_avg5.txt'
     all_results = {}
 
     with open(filename, 'w', encoding='utf-8') as f:
-        f.write("Monte Carlo Testing Results\n")
+        f.write("Monte Carlo Testing Results (Averaged over 5 runs)\n")
         f.write(f"Date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write("=" * 80 + "\n")
 
@@ -175,10 +194,7 @@ def main():
             if results:
                 all_results[points] = results
 
-    logging.info(f"\nTesting completed. Results saved to: {filename}")
-
     plot_results(all_results, thread_counts, point_counts, timestamp)
-    logging.info(f"Plots saved as speedup_by_threads_{timestamp}.png and speedup_by_points_{timestamp}.png")
     subprocess.run(['make', 'clean'],
                    capture_output=True,
                    text=True,
