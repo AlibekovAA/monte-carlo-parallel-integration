@@ -1,4 +1,0 @@
-variables: 2
-bounds: 0 5
-points: 10000000
-count_threads: 20
