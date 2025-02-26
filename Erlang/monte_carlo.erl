@@ -2,11 +2,14 @@
 -export([integrate/5]).
 
 integrate(Function, {X1, X2}, {Y1, Y2}, NumPoints, NumProcesses) ->
-    PointsPerProcess = NumPoints div NumProcesses,
+    BasePointsPerProcess = NumPoints div NumProcesses,
+    LastProcessPoints = BasePointsPerProcess + (NumPoints rem NumProcesses),
     Parent = self(),
 
-    [spawn(fun() -> worker(Function, {X1, X2}, {Y1, Y2}, PointsPerProcess, Parent) end)
-     || _ <- lists:seq(1, NumProcesses)],
+    [spawn(fun() -> worker(Function, {X1, X2}, {Y1, Y2}, BasePointsPerProcess, Parent) end)
+     || _ <- lists:seq(1, NumProcesses-1)],
+
+    spawn(fun() -> worker(Function, {X1, X2}, {Y1, Y2}, LastProcessPoints, Parent) end),
 
     Sum = collect_results(NumProcesses, 0),
 
