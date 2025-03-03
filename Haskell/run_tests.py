@@ -13,11 +13,10 @@ logging.basicConfig(
 
 
 def update_input_file(threads, points):
-    input_content = f"""function: sin(x1) + 2cos(x2)
-variables: 2
-bounds: 0 5
+    input_content = f"""variables: 2
+bounds: 0 5 0 5
 points: {points}
-count_threads: {threads}
+processes: {threads}
 """
     with open('input.txt', 'w', encoding='utf-8') as f:
         f.write(input_content)
@@ -35,12 +34,12 @@ def run_test(threads, points):
 
     try:
         result = subprocess.run(['make', 'run'],
-                                capture_output=True,
-                                text=True,
-                                encoding='utf-8')
+                              capture_output=True,
+                              text=True,
+                              encoding='utf-8')
 
-        result_match = re.search(r'интегрирования:\s*(-?\d+\.\d+)', result.stdout)
-        time_match = re.search(r'выполнения:\s*(-?\d+\.\d+)', result.stdout)
+        result_match = re.search(r'Integral result:\s*(-?\d+\.\d+)', result.stdout)
+        time_match = re.search(r'Execution time:\s*(-?\d+\.\d+)', result.stdout)
 
         if result_match and time_match:
             integral_result = float(result_match.group(1))
@@ -48,19 +47,19 @@ def run_test(threads, points):
             return integral_result, execution_time
         else:
             if not result_match:
-                logging.error("Could not find integral result in output")
+                logging.error("Не удалось найти результат интеграла в выводе")
             if not time_match:
-                logging.error("Could not find execution time in output")
+                logging.error("Не удалось найти время выполнения в выводе")
             return None, None
     except subprocess.CalledProcessError as e:
-        logging.error(f"Error running test: {e}")
+        logging.error(f"Ошибка при запуске теста: {e}")
         return None, None
     except Exception as e:
-        logging.error(f"Unexpected error: {e}")
+        logging.error(f"Неожиданная ошибка: {e}")
         return None, None
 
 
-def find_best_result(results, correct_result=-6.00755):
+def find_best_result(results, correct_result=-6.00):
     if not results:
         return None
     return min(results, key=lambda x: abs(x[3] - correct_result))
@@ -78,14 +77,15 @@ def plot_results(all_results, thread_counts, point_counts, timestamp):
 
     plt.figure(figsize=(10, 6))
     for points in point_counts:
-        plt.plot(thread_counts[:len(speedup_data[points])],
-                 speedup_data[points],
-                 marker='o',
-                 label=f'{points:,} points')
+        if points in speedup_data and len(speedup_data[points]) > 0:
+            plt.plot(thread_counts[:len(speedup_data[points])],
+                    speedup_data[points],
+                    marker='o',
+                    label=f'{points:,} точек')
 
-    plt.xlabel('Threads')
-    plt.ylabel('Speedup')
-    plt.title('Speedup by Number of Processes')
+    plt.xlabel('Количество потоков')
+    plt.ylabel('Ускорение')
+    plt.title('Ускорение в зависимости от количества потоков')
     plt.grid(True)
     plt.legend()
     plt.savefig(os.path.join(plots_dir, f'speedup_by_threads_{timestamp}.png'), dpi=300, bbox_inches='tight')
@@ -96,18 +96,18 @@ def plot_results(all_results, thread_counts, point_counts, timestamp):
     for thread_idx, thread_count in enumerate(thread_counts):
         if thread_count in selected_threads:
             speedups = [speedup_data[points][thread_idx]
-                        for points in point_counts
-                        if thread_idx < len(speedup_data[points])]
+                       for points in point_counts
+                       if points in speedup_data and thread_idx < len(speedup_data[points])]
             if speedups:
                 plt.plot(point_counts[:len(speedups)],
-                         speedups,
-                         marker='o',
-                         label=f'{thread_count} threads')
+                        speedups,
+                        marker='o',
+                        label=f'{thread_count} потоков')
 
     plt.xscale('log')
-    plt.xlabel('Points')
-    plt.ylabel('Speedup')
-    plt.title('Speedup by Number of Points')
+    plt.xlabel('Количество точек')
+    plt.ylabel('Ускорение')
+    plt.title('Ускорение в зависимости от количества точек')
     plt.grid(True)
     plt.legend()
     plt.savefig(os.path.join(plots_dir, f'speedup_by_points_{timestamp}.png'), dpi=300, bbox_inches='tight')
@@ -154,39 +154,39 @@ def run_tests_for_points(points, thread_counts, output_file):
     if results:
         best_result = find_best_result(results)
 
-        output_file.write(f"\nResults for {points:,} points (averaged over 5 runs):\n".replace(',', ' '))
+        output_file.write(f"\nРезультаты для {points:,} точек (среднее по 5 запускам):\n")
         output_file.write("-" * 80 + "\n")
 
-        headers = ["Threads"] + [str(r[0]) for r in results]
+        headers = ["Потоки"] + [str(r[0]) for r in results]
         output_file.write(format_table_row(headers) + "\n")
 
-        times = ["Time"] + [f"{r[1]:.4f}" for r in results]
+        times = ["Время"] + [f"{r[1]:.4f}" for r in results]
         output_file.write(format_table_row(times) + "\n")
 
-        speedups = ["Speedup"] + [f"{r[2]:.4f}" for r in results]
+        speedups = ["Ускорение"] + [f"{r[2]:.4f}" for r in results]
         output_file.write(format_table_row(speedups) + "\n")
 
-        integral_results = ["Result"] + [f"{r[3]:.4f}" for r in results]
+        integral_results = ["Результат"] + [f"{r[3]:.4f}" for r in results]
         output_file.write(format_table_row(integral_results) + "\n")
 
         output_file.write("-" * 80 + "\n")
         output_file.write(
-            f"Best approximation to -6.00755: {best_result[3]:.5f} (error: {abs(best_result[3] + 6.00755):.5f})\n")
+            f"Лучшее приближение к -6.00: {best_result[3]:.5f} (погрешность: {abs(best_result[3] + 6.00):.5f})\n")
 
     return results
 
 
 def main():
     thread_counts = [1, 3, 6, 12, 18, 20]
-    point_counts = [10000, 100000, 1000000, 10000000, 100000000]
+    point_counts = [10000, 100000, 1000000, 10000000]
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f'test_results_{timestamp}_avg5.txt'
+    filename = f'benchmark_results_{timestamp}.txt'
     all_results = {}
 
     with open(filename, 'w', encoding='utf-8') as f:
-        f.write("Monte Carlo Testing Results (Averaged over 5 runs)\n")
-        f.write(f"Date and time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write("Результаты тестирования производительности Monte Carlo Integration Haskell (среднее по 5 запускам)\n")
+        f.write(f"Дата и время: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write("=" * 80 + "\n")
 
         for points in point_counts:
@@ -196,9 +196,9 @@ def main():
 
     plot_results(all_results, thread_counts, point_counts, timestamp)
     subprocess.run(['make', 'clean'],
-                   capture_output=True,
-                   text=True,
-                   encoding='utf-8')
+                  capture_output=True,
+                  text=True,
+                  encoding='utf-8')
 
 
 if __name__ == "__main__":

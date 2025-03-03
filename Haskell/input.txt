@@ -1,0 +1,4 @@
+variables: 2
+bounds: 0 5 0 5
+points: 100000000
+processes: 1
