@@ -59,7 +59,7 @@ def run_test(threads, points):
         return None, None
 
 
-def find_best_result(results, correct_result=-6.00):
+def find_best_result(results, correct_result=-6.00755):
     if not results:
         return None
     return min(results, key=lambda x: abs(x[3] - correct_result))
@@ -171,7 +171,7 @@ def run_tests_for_points(points, thread_counts, output_file):
 
         output_file.write("-" * 80 + "\n")
         output_file.write(
-            f"Лучшее приближение к -6.00: {best_result[3]:.5f} (погрешность: {abs(best_result[3] + 6.00):.5f})\n")
+            f"Лучшее приближение к -6.00755: {best_result[3]:.5f} (погрешность: {abs(best_result[3] + 6.00755):.5f})\n")
 
     return results
 
