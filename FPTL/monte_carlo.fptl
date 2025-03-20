@@ -1,98 +1,73 @@
-Scheme MonteCarloIntegration {
-    x1 = 0.0;
-    x2 = 5.0;
-    y1 = 0.0;
-    y2 = 5.0;
-    bounds = (x1 * x2 * y1 * y2).makeArray;
-    points = 10000;
-    processes = 3;
+Scheme MonteCarlo
+{
+    N = [1];
+    P = [2];
+    @ = ((N * P).GenerateArrays.CountPoints * N).CalcResult.("Integral value: ".print).print;
 
-    Fun speedometerIntegration<testFun> {
-        @ = (getCurrentTime * testFun).
-        ((("Calculation time: " * (getCurrentTime * [1]).sub.toString * "\n").add).rawPrint * [1]);
+    Fun GenerateArrays
+    {
+        Count = [1];
+        Threads = [2];
+
+        ArrayX = (Count * 0.0).arrayCreate;
+        ArrayY = (Count * 0.0).arrayCreate;
+
+        @ = (ArrayX * ArrayY * 0).Recurse;
     }
 
-    volume = bounds.calcVolume;
-    basePointsPerProcess = (points * processes).div;
-    lastProcessPoints = (points * (basePointsPerProcess * (processes * 1).sub).mul).sub;
-    processesReal = processes.toReal;
+    Fun Recurse
+    {
+        ArrayX = [1];
+        ArrayY = [2];
+        CurI = [3];
+        Len = ArrayX.arrayLen;
 
-    @ = ((bounds * basePointsPerProcess * lastProcessPoints * processesReal * volume).
-        speedometerIntegration<calculate> * [1] ->
-        ("Scope of the area: " * volume.toString).printLine *
-        ("Points on the process:" * basePointsPerProcess.toString).printLine *
-        ("Points for the last process:" * lastProcessPoints.toString).printLine *
-        ("Integration result: " * ([1] * (1.0 * points.toReal).div).toString).printLine *
-        [1]);
-
-    Fun makeArray {
-        array = (4 * 0.0).arrayCreate;
-        array1 = (array * 0 * [1]).arraySet;
-        array2 = (array1 * 1 * [2]).arraySet;
-        array3 = (array2 * 2 * [3]).arraySet;
-        @ = (array3 * 3 * [4]).arraySet;
+        @ = (CurI * Len).less ->
+            ((ArrayX * CurI * (rand * 5.0).mul).arraySet * (ArrayY * CurI * (rand * 5.0).mul).arraySet * (CurI * 1).add).Recurse,
+            (ArrayX * ArrayY);
     }
 
-    Fun calcVolume {
-        width = ((bounds * 1).arrayGet * (bounds * 0).arrayGet).sub;
-        height = ((bounds * 3).arrayGet * (bounds * 2).arrayGet).sub;
-        @ = (width * height).mul;
+    Fun CountPoints
+    {
+        ArrayX = [1];
+        ArrayY = [2];
+
+        @ = (ArrayX * ArrayY * 0 * 0).RecurseCount;
     }
 
-    Fun calculate {
-        @ = ([1] * [2] * [3] * [4] * [5]).doCalculate;
+    Fun RecurseCount
+    {
+        ArrayX = [1];
+        ArrayY = [2];
+        CurI = [3];
+        Count = [4];
+        Len = ArrayX.arrayLen;
 
-        Fun doCalculate {
-            bounds = [1];
-            basePoints = [2];
-            lastPoints = [3];
-            processes = [4];
-            volume = [5];
+        @ = (CurI * Len).less ->
+            (ArrayX * ArrayY * (CurI * 1).add *
+                ((((ArrayX * CurI).arrayGet * (ArrayY * CurI).arrayGet).CheckPoint -> 1, 0) * Count).add
+            ).RecurseCount,
+            Count;
+    }
 
-            @ = ((bounds * basePoints * lastPoints * processes).parallelMonteCarlo);
+    Fun CheckPoint
+    {
+        X = [1];
+        Y = [2];
 
-            Fun parallelMonteCarlo {
-                @ = ([4] * 0.0).equal ->
-                    0.0,
-                    ([4] * 1.0).equal ->
-                        ([1] * [3] * 1).monteCarloProcess,
-                        (([1] * [2] * 1).monteCarloProcess *
-                        ([1] * [2] * [3] * ([4] * 1.0).sub).parallelMonteCarlo).add;
+        @ = (Y * ((X.sin * (X.cos * 2.0).mul).add)).less;
+    }
 
-                Fun monteCarloProcess {
-                    @ = ([2] * [1]).generateAndCount;
+    Fun CalcResult
+    {
+        Points = [1];
+        Total = [2];
 
-                    Fun generateAndCount {
-                        @ = ([1] * 0).equal ->
-                            0.0,
-                            (([1] * [2]).getRandomPoint *
-                            (([1] * 1).sub * [2]).generateAndCount).add;
-                    }
-
-                    Fun getRandomPoint {
-                        bounds = [2];
-                        x = (rand * ((bounds * 1).arrayGet * (bounds * 0).arrayGet).sub).mul;
-                        y = (rand * ((bounds * 3).arrayGet * (bounds * 2).arrayGet).sub).mul;
-
-                        sinx = x.sin;
-                        cosy = y.cos;
-                        cosy2 = (cosy * 2.0).mul;
-                        result = (sinx * cosy2).add;
-
-                        // @ = ("Point ").print *
-                        //   ("(").print * x.print * (", ").print * y.print * (")").print *
-                        //   ("\n  sin(x) = ").print * sinx.print *
-                        //   ("\n  cos(y) = ").print * cosy.print *
-                        //   ("\n  2*cos(y) = ").print * cosy2.print *
-                        //   ("\n  f(x,y) = sin(x) + 2*cos(y) = ").print * result.print *
-                        //   ("\n").print * result;
-                        @ = result;
-                    }
-                }
-            }
-        }
+        @ = (Points.toReal * 25.0 * Total.toReal).div;
     }
 }
 
 Application
-% MonteCarloIntegration
+N = 10000;
+P = 4;
+% MonteCarlo(N, P)

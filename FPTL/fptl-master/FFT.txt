@@ -1,0 +1,96 @@
+// Тип данных: параметризованный список.
+Data List['t]
+{
+	List = c_nil ++ 't * List['t].c_cons;
+}
+
+// Тип данных: комплексное число.
+Data Complex
+{
+	Complex = double * double.c_complex;
+}
+
+Scheme Fact
+{
+
+	@ = id.GenSinSignal.FFT;
+
+
+	// Быстрое преобразование Фурье. Входные данные A - список вещественных чисел, длина - степень двойки.
+	Fun FFT
+	{
+		@ = (N * 1).equal -> id,
+		    (OddCoeff.FFT * EvenCoeff.FFT * W * Wn).(Form(Op1, CompMul) * Form(Op2, CompMul)).Concat;
+
+		// Выбирает элементы списка с четными номерами.
+		EvenCoeff =
+			~c_nil -> c_nil,
+			~c_cons.[2].~c_nil -> c_nil,
+			~c_cons.[2].~c_cons.([1] * [2].EvenCoeff).c_cons;
+
+		// Выбирает элементы списка с нечетными номерами.
+		OddCoeff =
+			~c_nil -> c_nil,
+			~c_cons.[2].~c_nil -> ~c_cons.[1],
+			~c_cons.([1] * [2].~c_cons.[2].OddCoeff).c_cons;
+
+		N = id.Length;
+
+		Wn = (0.0 * ((2.0 * 3.141592).mul * N).div).c_complex.CompExp;
+
+		W = (1.0 * 0.0).c_complex;
+
+		// Формирует преобразованный список.
+		// Входные данные EvenCoeff, OddCoeff, W, Wn
+		Fun Form[aOperation, aMul]
+		{
+			@ = [1].~c_nil -> c_nil,
+				((Ec * Oc * W).aOperation * ([1].~c_cons.[2] * [2].~c_cons.[2] * NewW * Wn).Form).c_cons;
+
+			Ec = [1].~c_cons.[1];
+			Oc = [2].~c_cons.[1];
+			W = [3];
+
+			Wn = [4];
+
+			NewW = (W * Wn).aMul;
+		}
+
+		CompAdd = (([1].Real * [2].Real).add * ([1].Im * [2].Im).add).c_complex;
+		CompSub = (([1].Real * [2].Real).sub * ([1].Im * [2].Im).sub).c_complex;
+
+		CompMul = ( (([1].Real*[2].Real).mul*([1].Im*[2].Im).mul).sub * (([1].Im*[2].Real).mul * ([1].Real*[2].Im).mul).add).c_complex;
+
+		CompExp = ((Real.exp * Im.cos).mul * (Real.exp * Im.sin).mul).c_complex;
+
+		Real = ~c_complex.[1];
+		Im = ~c_complex.[2];
+			
+
+		Op1 = ([1] * ([2] * [3]).CompMul).CompAdd;
+		Op2 = ([1] * ([2] * [3]).CompMul).CompSub;
+
+		// Вычисление длины списка.
+		Length = ~c_nil -> 0, (~c_cons.[2].Length * 1).add;
+
+		// Конкатенация двух списков.
+		Concat = [1].~c_nil -> [2],
+				 [2].~c_nil -> [1],
+				([1].~c_cons.[1] * ([1].~c_cons.[2]*[2]).Concat).c_cons;
+	}
+
+	// Генерация сигнала.
+	Fun GenSignal[Generator]
+	{
+		@ = (id * 0).equal -> c_nil,
+		    (id.Generator * (id * 1).sub.GenSignal).c_cons;
+	}
+
+	SinSignal = ((id * 1024.0).div * 3.141592).mul.(id * sin).c_complex;
+
+	GenSinSignal = GenSignal(SinSignal);
+
+}
+
+Application
+% Fact(8192)
