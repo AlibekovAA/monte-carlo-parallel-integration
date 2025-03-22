@@ -1,73 +1,48 @@
-Scheme MonteCarlo
-{
+Scheme MonteCarloIntegration {
     N = [1];
-    P = [2];
-    @ = ((N * P).GenerateArrays.CountPoints * N).CalcResult.("Integral value: ".print).print;
+    x_start = [2];
+    x_end = [3];
+    y_start = [4];
+    y_end = [5];
 
-    Fun GenerateArrays
-    {
-        Count = [1];
-        Threads = [2];
+    @ = result.print;
+    result = (N * 0).equal -> (0.0),
+             (N * 0).less -> ("Error N").print,
+             (N.integrate.[2] * ((x_start * x_end * y_start * y_end).Area * N.toReal).div).mul;
 
-        ArrayX = (Count * 0.0).arrayCreate;
-        ArrayY = (Count * 0.0).arrayCreate;
+    Fun Area {
+        x_start = [1];
+        x_end = [2];
+        y_start = [3];
+        y_end = [4];
 
-        @ = (ArrayX * ArrayY * 0).Recurse;
+        @ = area.toReal;
+        area = ((x_end * x_start).sub * (y_end * y_start).sub).mul;
     }
 
-    Fun Recurse
-    {
-        ArrayX = [1];
-        ArrayY = [2];
-        CurI = [3];
-        Len = ArrayX.arrayLen;
+    Fun integrate {
+        N =  [1];
 
-        @ = (CurI * Len).less ->
-            ((ArrayX * CurI * (rand * 5.0).mul).arraySet * (ArrayY * CurI * (rand * 5.0).mul).arraySet * (CurI * 1).add).Recurse,
-            (ArrayX * ArrayY);
+        @ = (N * 0).equal -> (0 * 0.0),
+            ((N * 1).sub * (((rand * 5.0).mul * (rand * 5.0).mul).function * (N * 1).sub.integrate.[2]).add);
     }
 
-    Fun CountPoints
-    {
-        ArrayX = [1];
-        ArrayY = [2];
+    Fun function {
+        x = [1];
+        y = [2];
 
-        @ = (ArrayX * ArrayY * 0 * 0).RecurseCount;
-    }
-
-    Fun RecurseCount
-    {
-        ArrayX = [1];
-        ArrayY = [2];
-        CurI = [3];
-        Count = [4];
-        Len = ArrayX.arrayLen;
-
-        @ = (CurI * Len).less ->
-            (ArrayX * ArrayY * (CurI * 1).add *
-                ((((ArrayX * CurI).arrayGet * (ArrayY * CurI).arrayGet).CheckPoint -> 1, 0) * Count).add
-            ).RecurseCount,
-            Count;
-    }
-
-    Fun CheckPoint
-    {
-        X = [1];
-        Y = [2];
-
-        @ = (Y * ((X.sin * (X.cos * 2.0).mul).add)).less;
-    }
-
-    Fun CalcResult
-    {
-        Points = [1];
-        Total = [2];
-
-        @ = (Points.toReal * 25.0 * Total.toReal).div;
+        @ = result;
+        sinx = x.sin;
+        cosy = y.cos;
+        cosy2 = (cosy * 2.0).mul;
+        result = (sinx * cosy2).add;
     }
 }
 
 Application
-N = 10000;
-P = 4;
-% MonteCarlo(N, P)
+N = 100000000;
+x_end = 5;
+x_start = 0;
+y_end = 5;
+y_start = 0;
+% MonteCarloIntegration(N, x_start, x_end, y_start, y_end)
