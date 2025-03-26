@@ -1,1 +1,21 @@
-fptl parallel_quick_sort.fptl -n 8 -v -i
+.\fptl monte_carlo.fptl -n 3 -v -i
+Available options::
+  -s [ --source-file ] arg    Path to FPTL program file.
+  -n [ --num-cores ] arg (=1) Number of work threads.
+  --input-tuple arg           Input variables.
+  -p [ --proactive ]          Enable proactive calculations.
+  -h [ --help ]               Provides information about startup options.
+  -v [ --version ]            Displays the date and time of the interpreter
+                              build.
+  -t [ --time ]               Displays interpretation and evaluation times.
+  -i [ --info ]               Displays information about the interpretation and
+                              evaluation processes.
+  -a [ --ansi ]               Allow ANSI text formatting.
+  --ast-save                  Serialize AST to the file.
+  --scheme-save               Serialize functional schemes to the file.
+  --disable-gc                Disable garbage collector.
+  --verbose-gc                Displays information about the work of the
+                              garbage collector.
+  --young-gen arg (=20)       Young generation size in MiB.
+  --old-gen arg (=100)        Old generation size in MiB.
+  --old-gen-ratio arg (=0.75) Old gen usage ratio to start full GC.
