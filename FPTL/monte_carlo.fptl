@@ -6,9 +6,11 @@ Scheme MonteCarloIntegration {
     y_end = [5];
 
     @ = result.print;
+
+    multip = ((x_start * x_end * y_start * y_end).Area * N.toReal).div;
     result = (N * 0).equal -> (0.0),
              (N * 0).less -> ("Error N").print,
-             (N.integrate.[2] * ((x_start * x_end * y_start * y_end).Area * N.toReal).div).mul;
+             (N.integrate.[2] * multip).mul;
 
     Fun Area {
         x_start = [1];
